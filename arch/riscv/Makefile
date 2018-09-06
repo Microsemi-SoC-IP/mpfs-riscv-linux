@@ -62,6 +62,33 @@ endif
 
 KBUILD_CFLAGS_MODULE += $(call cc-option,-mno-relax)
 
+# Machine directory name.  This list is sorted alphanumerically
+# # by CONFIG_* macro name.
+machine-$(CONFIG_ARCH_RISCVPC)          += riscvpc
+
+# The first directory contains additional information for the boot setup code
+ifneq ($(machine-y),)
+MACHINE  := arch/riscv/mach-$(word 1,$(machine-y))/
+else
+MACHINE  :=
+endif
+ifeq ($(CONFIG_ARCH_MULTIPLATFORM),y)
+MACHINE  :=
+endif
+
+machdirs := $(patsubst %,arch/riscv/mach-%/,$(machine-y))
+platdirs := $(patsubst %,arch/riscv/plat-%/,$(sort $(plat-y)))
+
+ifneq ($(CONFIG_ARCH_MULTIPLATFORM),y)
+ifeq ($(KBUILD_SRC),)
+KBUILD_CPPFLAGS += $(patsubst %,-I%include,$(machdirs) $(platdirs))
+else
+KBUILD_CPPFLAGS += $(patsubst %,-I$(srctree)/%include,$(machdirs) $(platdirs))
+endif
+endif
+
+all: vmlinux
+
 # GCC versions that support the "-mstrict-align" option default to allowing
 # unaligned accesses.  While unaligned accesses are explicitly allowed in the
 # RISC-V ISA, they're emulated by machine mode traps on all extant
@@ -74,11 +101,11 @@ CHECKFLAGS += -D__riscv -D__riscv_xlen=$(BITS)
 head-y := arch/riscv/kernel/head.o
 
 core-y += arch/riscv/kernel/ arch/riscv/mm/
+# If we have a machine-specific directory, then include it in the build.
+core-y += $(machdirs) $(platdirs)
 
 libs-y += arch/riscv/lib/
 
 PHONY += vdso_install
 vdso_install:
 	$(Q)$(MAKE) $(build)=arch/riscv/kernel/vdso $@
-
-all: vmlinux

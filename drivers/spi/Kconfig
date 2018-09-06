@@ -756,6 +756,12 @@ config SPI_SIFIVE
         help
           This exposes the SPI controller IP from SiFive.
 
+config SPI_MICROSEMI
+	tristate "Microsemi SPI controller"
+	depends on SPI_MASTER
+	help
+	  This selects the Microsemi SPI bus driver
+
 #
 # Add new SPI master controllers in alphabetical order above this line
 #
