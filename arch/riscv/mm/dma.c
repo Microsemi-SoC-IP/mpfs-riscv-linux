@@ -47,10 +47,6 @@ static void dma_riscv_free(struct device *dev, size_t size,
 
 static int dma_riscv_supported(struct device *dev, u64 mask)
 {
-	/* Work-around for broken PCIe controllers */
-	if (IS_ENABLED(CONFIG_PCI_DMA_32) && mask > DMA_BIT_MASK(32))
-		return 0;
-
 	return swiotlb_dma_supported(dev, mask);
 }
 
@@ -69,4 +65,6 @@ const struct dma_map_ops dma_riscv_ops = {
 	.mapping_error		= swiotlb_dma_mapping_error,
 };
 
-EXPORT_SYMBOL(dma_riscv_ops);
+const struct dma_map_ops * dma_ops = &dma_riscv_ops;
+
+EXPORT_SYMBOL(dma_ops);

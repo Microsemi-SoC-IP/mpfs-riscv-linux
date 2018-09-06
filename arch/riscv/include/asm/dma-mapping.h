@@ -22,11 +22,19 @@
 /* Use ops->dma_mapping_error (if it exists) or assume success */
 // #undef DMA_ERROR_CODE
 
+/*
+ * we'll redirect access to dma_ops structure through a pointer to allow
+ * platform to override this dynamically if needed...
+ *
+ * RISCVPC platform does this to restrict PCIe DMA to lower 32-bit addresses,
+ * based on a flag in the device tree.
+ */
 extern const struct dma_map_ops dma_riscv_ops;
+extern const struct dma_map_ops* dma_ops;
 
 static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
 {
-	return &dma_riscv_ops;
+	return dma_ops;
 }
 
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
