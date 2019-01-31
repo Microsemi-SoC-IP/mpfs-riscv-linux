@@ -372,9 +372,9 @@ struct dma_controller *musbhs_dma_controller_create(struct musb *musb,
 	controller->controller.channel_program = dma_channel_program;
 	controller->controller.channel_abort = dma_channel_abort;
 
-	if (request_irq(irq, dma_controller_irq, 0,
+	if (devm_request_irq(dev, irq, dma_controller_irq, IRQF_SHARED, // should be zero so flags from DT will be used
 			dev_name(musb->controller), &controller->controller)) {
-		dev_err(dev, "request_irq %d failed!\n", irq);
+		dev_err(dev, "devm_request_irq %d failed!\n", irq);
 		musb_dma_controller_destroy(&controller->controller);
 
 		return NULL;

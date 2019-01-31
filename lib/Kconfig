@@ -228,6 +228,7 @@ config ZLIB_INFLATE
 
 config ZLIB_DEFLATE
 	tristate
+        default y
 	select BITREVERSE
 
 config LZO_COMPRESS

@@ -775,6 +775,13 @@ config SPI_MICROSEMI
 	help
 	  This selects the Microsemi SPI bus driver
 
+config SPI_MICROSEMI_QSPI
+	tristate "Microsemi/Microchip QSPI controller"
+	depends on SPI_MASTER
+	help
+	  This enables support for the QSPI controller in master
+	  mode.
+
 #
 # Add new SPI master controllers in alphabetical order above this line
 #

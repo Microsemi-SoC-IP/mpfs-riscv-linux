@@ -5,7 +5,6 @@
  * Copyright 2005 Mentor Graphics Corporation
  * Copyright (C) 2005-2007 by Texas Instruments
  */
-
 #ifndef CONFIG_BLACKFIN
 
 #define MUSB_HSDMA_BASE		0x200
@@ -110,7 +109,11 @@ static inline void musb_write_hsdma_count(void __iomem *mbase,
 #define MUSB_HSDMA_BURSTMODE_INCR8	2
 #define MUSB_HSDMA_BURSTMODE_INCR16	3
 
+#ifndef CONFIG_USB_MUSB_MICROSEMI
 #define MUSB_HSDMA_CHANNELS		8
+#else
+#define MUSB_HSDMA_CHANNELS		4
+#endif
 
 struct musb_dma_controller;
 

@@ -1,0 +1,38 @@
+* Microsemi I2C
+
+Required properties :
+
+ - compatible : should be "microsemi,ms-pf-mss-i2c"
+ - reg : Offset and length of the register set for the device
+ - interrupts : <IRQ> where IRQ is the interrupt number.
+
+Recommended properties :
+
+ - clock-frequency : desired I2C bus clock frequency in Hz.
+
+Examples :
+
+	i2c@2000100000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "microsemi,ms-pf-mss-i2c";
+		reg = <0x20 0x00100000 0x0 0x1000>;
+		interrupts = <32>;
+		clock-frequency = <400000>;
+	};
+
+	i2c@1120000 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "microsemi,ms-pf-mss-i2c";
+		reg = <0x20 0x00100000 0x0 0x1000>;
+		interrupts = <32>;
+		clock-frequency = <400000>;
+
+		at24@0 {
+			compatible = "at24,24c16";
+			pagesize=<16>;
+			reg = <0x50>;
+			status = "okay";
+		};
+	};

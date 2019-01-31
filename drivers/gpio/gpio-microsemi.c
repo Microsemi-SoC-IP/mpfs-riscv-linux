@@ -126,14 +126,6 @@ static int microsemi_mss_gpio_direction_output(struct gpio_chip *gc,
 
 	raw_spin_lock_irqsave(&mss_gpio->lock, flags);
 
-	// disable GPIO
-	MSS_GPIO_IOWRITE(0u,
-		MSS_GPIO_INDEX_TO_CFG(mss_gpio->gpio_cfg_base, gpio_index));
-
-	// write value to output once enabled
-	microsemi_mss_gpio_assign_bit(mss_gpio->gpio_out_base, gpio_index,
-		value);
-
 	//enable GPIO for Output
 	//gpio_cfg = MSS_GPIO_IOREAD(MSS_GPIO_INDEX_TO_CFG(mss_gpio->gpio_cfg,
 	//	gpio_index));
@@ -143,6 +135,10 @@ static int microsemi_mss_gpio_direction_output(struct gpio_chip *gc,
 	gpio_cfg &= ~BIT(MSS_GPIO_X_CFG_BIT_EN_IN);
 	MSS_GPIO_IOWRITE(gpio_cfg,
 		MSS_GPIO_INDEX_TO_CFG(mss_gpio->gpio_cfg_base, gpio_index));
+
+	// write value to output once enabled
+	microsemi_mss_gpio_assign_bit(mss_gpio->gpio_out_base, gpio_index,
+		value);
 
 	raw_spin_unlock_irqrestore(&mss_gpio->lock, flags);
 
@@ -364,9 +360,7 @@ static void microsemi_mss_gpio_irq_handler(struct irq_desc *desc)
 
 	status = MSS_GPIO_IOREAD(mss_gpio->gpio_irq_base) & MSS_GPIO_IRQ_MASK;
 	for_each_set_bit(offset, (const unsigned long *)&status,
-		mss_gpio->gc.ngpio) {
-		// TODO: is for_each_set_bit() safe here,
-		// as MSS regs are 32-bit?
+		mss_gpio->gc.ngpio) { 
 		generic_handle_irq(irq_find_mapping(mss_gpio->gc.irq.domain,
 			offset));
 	}
@@ -394,14 +388,16 @@ static int microsemi_mss_gpio_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mss_gpio->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(mss_gpio->base)) {
 		dev_err(dev, "failed to allocate device memory\n");
 		return PTR_ERR(mss_gpio->base);
 	}
-	mss_gpio->gpio_cfg_base = mss_gpio->base + 0x0u;
-	mss_gpio->gpio_irq_base = mss_gpio->base + 0x80u;
-	mss_gpio->gpio_in_base = mss_gpio->base + 0x84u;
-	mss_gpio->gpio_out_base = mss_gpio->base + 0x88u;
+
+	mss_gpio->gpio_cfg_base = mss_gpio->base + (0x00u/sizeof(MSS_GPIO_REG_TYPE));
+	mss_gpio->gpio_irq_base = mss_gpio->base + (0x80u/sizeof(MSS_GPIO_REG_TYPE));
+	mss_gpio->gpio_in_base  = mss_gpio->base + (0x84u/sizeof(MSS_GPIO_REG_TYPE));
+	mss_gpio->gpio_out_base = mss_gpio->base + (0x88u/sizeof(MSS_GPIO_REG_TYPE));
 
 	ngpio = of_irq_count(node);
 	if (ngpio >= MSS_NUM_GPIO) {
@@ -476,7 +472,7 @@ static int microsemi_mss_gpio_probe(struct platform_device *pdev)
 	}
 
 	platform_set_drvdata(pdev, mss_gpio);
-	dev_info(dev, "Microsemi MSS GPIO registered %d GPIOs\n", ngpio);
+	dev_info(dev, "Microsemi MSS GPIO registered %d GPIO%s\n", ngpio, ngpio ? "s":"");
 
 	return 0;
 }
